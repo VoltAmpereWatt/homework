@@ -2,8 +2,13 @@ import cv2
 import numpy as np
 import copy
 import math
+import struct
+import sys
+from scipy import signal
+import tkinter as Tk
 #from appscript import app
-
+import audiopanel as ap
+import pyaudio
 # Environment:
 # OS    : Mac OS EL Capitan
 # python: 3.5
@@ -66,6 +71,21 @@ camera.set(10,200)
 cv2.namedWindow('trackbar')
 cv2.createTrackbar('trh1', 'trackbar', threshold, 100, printThreshold)
 
+st = "{} is selected".format(0)
+
+p = pyaudio.PyAudio()
+stream = p.open(
+  format = pyaudio.paInt16,  
+  channels = 1, 
+  rate = Fs,
+  input = False, 
+  output = True,
+  frames_per_buffer = 128)
+
+BLOCKLEN = 256
+output_block = np.zeros(BLOCKLEN)
+# output_block = [0 for n in range(0, BLOCKLEN)]
+theta = 0
 
 while camera.isOpened():
     ret, frame = camera.read()
@@ -86,9 +106,9 @@ while camera.isOpened():
         # convert the image into binary image
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
-        cv2.imshow('blur', blur)
+        # cv2.imshow('blur', blur)
         ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
-        cv2.imshow('ori', thresh)
+        # cv2.imshow('ori', thresh)
 
 
         # get the coutours
@@ -107,6 +127,7 @@ while camera.isOpened():
             res = contours[ci]
             hull = cv2.convexHull(res)
             drawing = np.zeros(img.shape, np.uint8)
+            # string_to_out = "%d".format(cnt)
             cv2.drawContours(drawing, [res], 0, (0, 255, 0), 2)
             cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 3)
 
@@ -115,9 +136,12 @@ while camera.isOpened():
                 if isFinishCal is True and cnt <= 2:
                     print (cnt)
                     #app('System Events').keystroke(' ')  # simulate pressing blank space
-                    
-
+            cv2.putText(drawing, st, (20,20), cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,0),2)    
+            if cnt == 2:
+                st = "{} is selected".format(cnt+1)
+            
         cv2.imshow('output', drawing)
+
 
     # Keyboard OP
     k = cv2.waitKey(10)
@@ -135,3 +159,4 @@ while camera.isOpened():
     elif k == ord('n'):
         triggerSwitch = True
         print ('!!!Trigger On!!!')
+
