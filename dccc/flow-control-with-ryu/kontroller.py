@@ -69,83 +69,44 @@ class Switch(app_manager.RyuApp):
 			# If src_mac is for h1 or h2, then we're at the edge switches.
 			# but for core switches, the macs are from the edge switches.
 			# so instead, we'll look into the tcp packet
+			# self.counter += 1
+			# out_port_index = self.counter%3
+			# out_port = self.out_ports[out_port_index]
 			if src_mac == '00:00:00:00:00:01':
+				out_port_index = self.count%3
+				# Setting Both Flows simultaneously
+				in_port, out_port = 1, self.out_ports[out_port_index]
+				flow_write(dp,in_port,out_port,msg.data)
+				in_port, out_port = out_port, in_port
+				flow_write(dp,in_port,out_port,msg.data)
+				self.counter += 1
+
+			elif src_mac == '00:00:00:00:00:02':
+				out_port_index = self.count%3
+				# Setting Both Flows simultaneously
+				in_port, out_port = 1, self.out_ports[out_port_index]
+				flow_write(dp,in_port,out_port,msg.data)
+				in_port, out_port = out_port, in_port
+				flow_write(dp,in_port,out_port,msg.data)
+				self.counter += 1
+
+			# look into ip packet if src isn't a host
+			elif src_tcp == '10.0.0.1':
 				# Setting Both Flows simultaneously
 				in_port, out_port = 1, 2
 				flow_write(dp,in_port,out_port,msg.data)
-				# self.counter += 1
-				# out_port_index = self.counter%3
-				# out_port = self.out_ports[out_port_index]
-				# actions = [parser.OFPActionOutput(port=out_port)]
-				# self.add_flow(dp, priority=1,action=actions)
-				# out = parser.OFPPacketOut(datapath = dp,
-				# 						buffer_id = ofproto.OFPCML_NO_BUFFER,
-				# 						in_port = 1, actions = actions,
-				# 						data = msg.data)
-				dp.send_msg(out)
-				# out_port = 1
 				in_port, out_port = out_port, in_port
 				flow_write(dp,in_port,out_port,msg.data)
-				# actions = [parser.OFPActionOutput(port=out_port)]
-				# self.add_flow(dp, priority=1,action=actions)
-				# out = parser.OFPPacketOut(datapath = dp,
-				# 						buffer_id = ofproto.OFPCML_NO_BUFFER,
-				# 						in_port = 2, actions = actions,
-				# 						data = msg.data)
-				dp.send_msg(out)
-			elif src_mac == '00:00:00:00:00:02':
-				out_port = 2
-				actions = [parser.OFPActionOutput(port=out_port)]
-				self.add_flow(dp, priority=1,action=actions)
-				out = parser.OFPPacketOut(datapath = dp,
-										buffer_id = ofproto.OFPCML_NO_BUFFER,
-										in_port = 1, actions = actions,
-										data = msg.data)
-				dp.send_msg(out)
-				out_port = 1
-				actions = [parser.OFPActionOutput(port=out_port)]
-				self.add_flow(dp, priority=1,action=actions)
-				out = parser.OFPPacketOut(datapath = dp,
-										buffer_id = ofproto.OFPCML_NO_BUFFER,
-										in_port = 2, actions = actions,
-										data = msg.data)
-				dp.send_msg(out)
-				# look into ip packet if src isn't a host
-			elif src_tcp == '10.0.0.1':
-				out_port = 2
-				actions = [parser.OFPActionOutput(port=out_port)]
-				self.add_flow(dp, priority=1,action=actions)
-				out = parser.OFPPacketOut(datapath = dp,
-										buffer_id = ofproto.OFPCML_NO_BUFFER,
-										in_port = 1, actions = actions,
-										data = msg.data)
-				dp.send_msg(out)
-				out_port = 1
-				actions = [parser.OFPActionOutput(port=out_port)]
-				self.add_flow(dp, priority=1,action=actions)
-				out = parser.OFPPacketOut(datapath = dp,
-										buffer_id = ofproto.OFPCML_NO_BUFFER,
-										in_port = 2, actions = actions,
-										data = msg.data)
-				dp.send_msg(out)
-			elif src_tcp == '10.0.0.2':
-				out_port = 2
-				actions = [parser.OFPActionOutput(port=out_port)]
-				self.add_flow(dp, priority=1,action=actions)
-				out = parser.OFPPacketOut(datapath = dp,
-										buffer_id = ofproto.OFPCML_NO_BUFFER,
-										in_port = 1, actions = actions,
-										data = msg.data)
-				dp.send_msg(out)
-				out_port = 1
-				actions = [parser.OFPActionOutput(port=out_port)]
-				self.add_flow(dp, priority=1,action=actions)
-				out = parser.OFPPacketOut(datapath = dp,
-										buffer_id = ofproto.OFPCML_NO_BUFFER,
-										in_port = 2, actions = actions,
-										data = msg.data)
-				dp.send_msg(out)
+				# counter += 1
 
+			# NOT SURE IF THIS IS NEEDED
+			# elif src_tcp == '10.0.0.2':
+			# 	# Setting Both Flows simultaneously
+			# 	in_port, out_port = 2,1
+			# 	flow_write(dp,in_port,out_port,msg.data)
+			# 	in_port, out_port = out_port, in_port
+			# 	flow_write(dp,in_port,out_port,msg.data)
+			# 	counter += 1
 			# dp.send_msg(out)
 
 		def flow_write(datapath, in_port, out_port, data):
